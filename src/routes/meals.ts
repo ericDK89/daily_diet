@@ -53,22 +53,22 @@ export const mealsRoutes = async (app: FastifyInstance): Promise<void> => {
   })
 
   // get user meal by id
-  app.get('/:userId/:meal_id', async (request, reply) => {
-    const id = await getUserMealById(request)
+  app.get('/meal/:mealId', async (request, reply) => {
+    const mealId = await getUserMealById(request)
 
     const userMeal = await knex('meals')
-      .where('id', id)
+      .where('id', mealId)
       .first()
 
     return await reply.status(200).send({ userMeal })
   })
 
   // edit user meal by id
-  app.put('/:id', async (request, reply) => {
-    const id = await getUserMealById(request)
+  app.put('/:mealId', async (request, reply) => {
+    const mealId = await getUserMealById(request)
 
     const userMeal = await knex('meals')
-      .where('id', id)
+      .where('id', mealId)
       .first()
 
     const getUserMealsBodySchema = z.object({
@@ -92,18 +92,18 @@ export const mealsRoutes = async (app: FastifyInstance): Promise<void> => {
     }
 
     await knex('meals')
-      .where('id', id)
+      .where('id', mealId)
       .update(updatedFields)
 
     return await reply.status(200).send()
   })
 
   // delete user meal by id
-  app.delete('/:id', async (request, reply) => {
-    const id = await getUserMealById(request)
+  app.delete('/:mealId', async (request, reply) => {
+    const mealId = await getUserMealById(request)
 
     await knex('meals')
-      .where('id', id)
+      .where('id', mealId)
       .del()
 
     return await reply.status(202).send()

@@ -2,6 +2,8 @@ import { type FastifyInstance } from 'fastify'
 import { knex } from '../db'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
+import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
+import { getBestSequence } from '../utils/get-best-sequence'
 
 export const usersRoutes = async (app: FastifyInstance): Promise<void> => {
   //  create new user
@@ -34,27 +36,33 @@ export const usersRoutes = async (app: FastifyInstance): Promise<void> => {
     return await reply.status(201).send()
   })
 
+  app.addHook('preHandler', checkSessionIdExists)
+
   // get all user metrics
-  app.get('/:id', async (request, reply) => {
-    const { sessionId } = request.cookies
+  app.get('/:userId/metrics', async (request, reply) => {
+    const createUserIdSchema = z.object({
+      userId: z.string()
+    })
 
-    const user = await knex('users')
-      .where('session_id', sessionId)
-      .first()
+    const { userId } = createUserIdSchema.parse(request.params)
 
-    if (user == null) {
-      return await reply.status(404).send({
-        error: 'User not found'
-      })
-    }
-
-    const userFoodAmount = await knex('meals')
-      .where('id', user.id)
+    const allUserMeals = await knex('meals')
+      .where('user_id', userId)
       .select('*')
 
-    return {
-      userFoodAmount
+    const userWithinDietMealsAmount = allUserMeals.filter(meal => meal.within_the_diet)
+    const userNotWithinDietMealsAmount = allUserMeals.filter(meal => !meal.within_the_diet)
+
+    const metricBestSequence = getBestSequence(allUserMeals)
+
+    const metrics = {
+      allUserMeals: allUserMeals.length,
+      userWithinDietMealsAmount: userWithinDietMealsAmount.length,
+      userNotWithinDietMealsAmount: userNotWithinDietMealsAmount.length,
+      bestSequence: metricBestSequence
     }
+
+    return await reply.status(200).send(metrics)
   })
 
   app.get('/', async (request) => {

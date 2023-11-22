@@ -3,10 +3,10 @@ import { z } from 'zod'
 
 export const getUserMealById = async (request: FastifyRequest): Promise<string> => {
   const getUserMealParamsSchema = z.object({
-    id: z.string()
+    mealId: z.string()
   })
 
-  const { id } = getUserMealParamsSchema.parse(request.params)
+  const { mealId } = getUserMealParamsSchema.parse(request.params)
 
-  return id
+  return mealId
 }
