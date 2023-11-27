@@ -2,7 +2,6 @@ import { type FastifyInstance } from 'fastify'
 import { knex } from '../db'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
-import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 import { getBestSequence } from '../utils/get-best-sequence'
 
 export const usersRoutes = async (app: FastifyInstance): Promise<void> => {
@@ -35,8 +34,6 @@ export const usersRoutes = async (app: FastifyInstance): Promise<void> => {
 
     return await reply.status(201).send()
   })
-
-  app.addHook('preHandler', checkSessionIdExists)
 
   // get all user metrics
   app.get('/:userId/metrics', async (request, reply) => {
